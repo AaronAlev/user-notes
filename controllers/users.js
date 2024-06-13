@@ -44,6 +44,35 @@ const register = async (req, res) => {
     });
 };
 
+const login = async (req, res) => {
+    const { username, password } = req.body;
+    const user = await User.findOne({ where: { username: username } });
+    if (!user) {
+        return res.status(400).json({
+            error: 'User does not exist'
+        });
+    } else if (user) {
+        bcrypt.compare(password, user.password, (error, result) => {
+            if (result) {
+                req.session.user = {
+                    username: user,
+                    user_id: user.id
+                };
+                res.json({
+                    message: 'User logged in successfully',
+                    user: user,
+                    user_session: req.session.user
+                });
+            } else {
+                res.status(400).json({
+                    error: 'Invalid password'
+                });
+            }
+        });
+    }
+};
+
 module.exports = {
-    register
+    register,
+    login
 }
